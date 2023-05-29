@@ -1,42 +1,58 @@
-import React from 'react';
-import {
-  ChakraProvider,
-  Box,
-  Text,
-  Link,
-  VStack,
-  Code,
-  Grid,
-  theme,
-} from '@chakra-ui/react';
-import { ColorModeSwitcher } from './ColorModeSwitcher';
-import { Logo } from './Logo';
+import React, { useState, useEffect } from 'react';
+import { ChakraProvider, theme } from '@chakra-ui/react';
+import Login from './pages/global/Login';
+import Admin from './Admin';
+import Student from './Student';
+import Faculty from './Faculty';
 
 function App() {
-  return (
-    <ChakraProvider theme={theme}>
-      <Box textAlign="center" fontSize="xl">
-        <Grid minH="100vh" p={3}>
-          <ColorModeSwitcher justifySelf="flex-end" />
-          <VStack spacing={8}>
-            <Logo h="40vmin" pointerEvents="none" />
-            <Text>
-              Edit <Code fontSize="xl">src/App.js</Code> and save to reload.
-            </Text>
-            <Link
-              color="teal.500"
-              href="https://chakra-ui.com"
-              fontSize="2xl"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn Chakra
-            </Link>
-          </VStack>
-        </Grid>
-      </Box>
-    </ChakraProvider>
-  );
+
+  const [isAuth, setIsAuth] = useState()
+
+  useEffect(() => {
+    const signin = async () => {
+      const response = await fetch('http://localhost:8000/api/user', {
+        headers: { 'Content-Type': 'application/json' },
+        mode: "cors",
+        credentials: 'include',
+      });
+      const res = await response.json();
+      setIsAuth(res)
+      console.log(res)
+    }
+    signin();
+  }, [])
+
+  if (isAuth) {
+    if (isAuth.detail) {
+      return (
+        <ChakraProvider theme={theme}>
+          <Login />
+        </ChakraProvider>
+      );
+    }
+  else if (isAuth.permission == 'admin') {
+    return (
+      <ChakraProvider theme={theme}>
+          <Admin data={isAuth}/>
+        </ChakraProvider>
+    );
+  } 
+  else if (isAuth.permission == 'faculty') {
+    return (
+      <ChakraProvider theme={theme}>
+          <Faculty data={isAuth}/>
+        </ChakraProvider>
+    )
+  }
+  else if (isAuth.permission == 'student') {
+    return (
+      <ChakraProvider theme={theme}>
+          <Student data={isAuth}/>
+        </ChakraProvider>
+    )
+  }
+}
 }
 
 export default App;
